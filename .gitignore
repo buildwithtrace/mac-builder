@@ -17,3 +17,9 @@ build-x86_64/
 
 Trace.dmg
 create_dmg.sh
+
+# Local-only files (contain machine-specific paths/keys)
+.vscode/
+*.local
+*.template
+*.backup

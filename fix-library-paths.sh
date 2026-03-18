@@ -4,7 +4,8 @@
 
 set -e
 
-APP_DIR="/Users/elcruzo/Documents/Code/Jeff/Trace/kicad-mac-builder/build/kicad-dest/KiCad.app"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+APP_DIR="${SCRIPT_DIR}/build/kicad-dest/KiCad.app"
 FRAMEWORKS="$APP_DIR/Contents/Frameworks"
 PLUGINS="$APP_DIR/Contents/PlugIns"
 
@@ -36,7 +37,7 @@ fix_binary() {
 echo "📦 Copying libraries to Frameworks..."
 
 # wxWidgets
-for lib in /Users/elcruzo/Documents/Code/Jeff/Trace/kicad-mac-builder/build/wxwidgets-dest/lib/*.dylib; do
+for lib in "${SCRIPT_DIR}/build/wxwidgets-dest/lib"/*.dylib; do
     if [[ -f "$lib" ]] && [[ ! -L "$lib" ]]; then
         libname=$(basename "$lib")
         if [[ ! -f "$FRAMEWORKS/$libname" ]]; then
@@ -47,7 +48,7 @@ for lib in /Users/elcruzo/Documents/Code/Jeff/Trace/kicad-mac-builder/build/wxwi
 done
 
 # ngspice
-for lib in /Users/elcruzo/Documents/Code/Jeff/Trace/kicad-mac-builder/build/ngspice-dest/lib/*.dylib; do
+for lib in "${SCRIPT_DIR}/build/ngspice-dest/lib"/*.dylib; do
     if [[ -f "$lib" ]] && [[ ! -L "$lib" ]]; then
         libname=$(basename "$lib")
         if [[ ! -f "$FRAMEWORKS/$libname" ]]; then
@@ -98,5 +99,5 @@ done
 echo "✅ Done! Library paths fixed."
 echo ""
 echo "Verify with:"
-echo "  bash /Users/elcruzo/Documents/Code/Jeff/Trace/kicad-mac-builder/kicad-mac-builder/bin/verify-app.sh $APP_DIR 2>&1 | head -20"
+echo "  bash ${SCRIPT_DIR}/kicad-mac-builder/bin/verify-app.sh $APP_DIR 2>&1 | head -20"
 
