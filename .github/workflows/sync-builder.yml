@@ -1,5 +1,5 @@
-# For builders, org (buildwithtrace) is primary. This workflow runs on both repos.
-# On org: syncs to personal. On personal: syncs to org.
+# Bidirectional sync: buildwithtrace/trace-mac-builder <-> elcruzo/trace-mac-builder
+# Loop guard: skips push if remote SHA already matches local HEAD.
 name: Sync Builder
 
 on:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   sync-to-personal:
-    if: github.repository == 'buildwithtrace/mac-builder'
+    if: github.repository == 'buildwithtrace/trace-mac-builder'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,7 +16,23 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.PERSONAL_PUSH_TOKEN }}
 
+      - name: Check if sync needed
+        id: check
+        env:
+          PERSONAL_PUSH_TOKEN: ${{ secrets.PERSONAL_PUSH_TOKEN }}
+        run: |
+          REMOTE_SHA=$(git ls-remote https://x-access-token:${PERSONAL_PUSH_TOKEN}@github.com/elcruzo/trace-mac-builder.git main | cut -f1)
+          LOCAL_SHA=$(git rev-parse HEAD)
+          if [ "$REMOTE_SHA" = "$LOCAL_SHA" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Already in sync ($LOCAL_SHA)"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "Syncing $LOCAL_SHA -> personal (was $REMOTE_SHA)"
+          fi
+
       - name: Push to personal repo
+        if: steps.check.outputs.skip != 'true'
         env:
           PERSONAL_PUSH_TOKEN: ${{ secrets.PERSONAL_PUSH_TOKEN }}
         run: |
@@ -32,9 +48,25 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.ORG_PUSH_TOKEN }}
 
-      - name: Push to org repo
+      - name: Check if sync needed
+        id: check
         env:
           ORG_PUSH_TOKEN: ${{ secrets.ORG_PUSH_TOKEN }}
         run: |
-          git remote add org https://x-access-token:${ORG_PUSH_TOKEN}@github.com/buildwithtrace/mac-builder.git
+          REMOTE_SHA=$(git ls-remote https://x-access-token:${ORG_PUSH_TOKEN}@github.com/buildwithtrace/trace-mac-builder.git main | cut -f1)
+          LOCAL_SHA=$(git rev-parse HEAD)
+          if [ "$REMOTE_SHA" = "$LOCAL_SHA" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Already in sync ($LOCAL_SHA)"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "Syncing $LOCAL_SHA -> org (was $REMOTE_SHA)"
+          fi
+
+      - name: Push to org repo
+        if: steps.check.outputs.skip != 'true'
+        env:
+          ORG_PUSH_TOKEN: ${{ secrets.ORG_PUSH_TOKEN }}
+        run: |
+          git remote add org https://x-access-token:${ORG_PUSH_TOKEN}@github.com/buildwithtrace/trace-mac-builder.git
           git push org HEAD:main --force
