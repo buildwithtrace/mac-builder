@@ -1,0 +1,40 @@
+# For builders, org (buildwithtrace) is primary. This workflow runs on both repos.
+# On org: syncs to personal. On personal: syncs to org.
+name: Sync Builder
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  sync-to-personal:
+    if: github.repository == 'buildwithtrace/mac-builder'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PERSONAL_PUSH_TOKEN }}
+
+      - name: Push to personal repo
+        env:
+          PERSONAL_PUSH_TOKEN: ${{ secrets.PERSONAL_PUSH_TOKEN }}
+        run: |
+          git remote add personal https://x-access-token:${PERSONAL_PUSH_TOKEN}@github.com/elcruzo/trace-mac-builder.git
+          git push personal HEAD:main --force
+
+  sync-to-org:
+    if: github.repository == 'elcruzo/trace-mac-builder'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.ORG_PUSH_TOKEN }}
+
+      - name: Push to org repo
+        env:
+          ORG_PUSH_TOKEN: ${{ secrets.ORG_PUSH_TOKEN }}
+        run: |
+          git remote add org https://x-access-token:${ORG_PUSH_TOKEN}@github.com/buildwithtrace/mac-builder.git
+          git push org HEAD:main --force
