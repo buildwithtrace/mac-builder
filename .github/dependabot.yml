@@ -1,0 +1,12 @@
+# C24 — Dependabot for mac-builder dmgbuild path
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/dmgbuild"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - security

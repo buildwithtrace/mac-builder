@@ -1,1 +1,2 @@
-dmgbuild
+# C22: pin dmgbuild for reproducible macOS DMG builds
+dmgbuild==1.6.7

@@ -37,7 +37,8 @@ ExternalProject_Add(
     python
     PREFIX  python
     GIT_REPOSITORY https://github.com/gregneagle/relocatable-python.git
-    GIT_TAG main
+    # C22: pin to commit SHA (not main)
+    GIT_TAG 8ee72fe3a5dbef733365370ebf44f25022b895ef
     CONFIGURE_COMMAND 	""
     UPDATE_COMMAND      ""
     PATCH_COMMAND       ""
