@@ -26,22 +26,24 @@ def patch_setup_py():
 
 def patch_build_py():
     with open('build.py', 'r') as f:
-        lines = f.readlines()
-    
-    result = []
-    found = False
-    i = 0
-    
-    while i < len(lines):
-        result.append(lines[i])
-        # Check if this is the [project] line and next line has name = "{base}"
-        if '[project]' in lines[i] and i + 1 < len(lines) and 'name = "{base}"' in lines[i + 1] and not found:
-            result.append('            [tool.sip.metadata]\n')
-            found = True
-        i += 1
-    
+        content = f.read()
+
+    # The wxPython build.py generates a pyproject.toml template like:
+    #     [project]
+    #     name = "{base}"
+    #     [tool.sip.bindings.{base}]
+    #
+    # Newer sip requires [tool.sip.metadata] with a name key, while also
+    # keeping name under [project]. Insert the metadata section after the
+    # existing name line rather than before it (which would steal it from
+    # [project]).
+    old = '[project]\n            name = "{base}"'
+    new = '[project]\n            name = "{base}"\n\n            [tool.sip.metadata]\n            name = "{base}"'
+    if old in content and '[tool.sip.metadata]' not in content:
+        content = content.replace(old, new)
+
     with open('build.py', 'w') as f:
-        f.writelines(result)
+        f.write(content)
 
 if __name__ == '__main__':
     patch_build_py()
