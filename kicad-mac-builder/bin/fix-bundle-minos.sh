@@ -99,6 +99,12 @@ SKIPPED=0
 ERRORS=0
 
 while IFS= read -r -d '' binary; do
+    # Skip Sparkle.framework -- its binaries are pre-built with correct minos
+    # and modifying them can corrupt the universal binary structure.
+    case "$binary" in
+        *Sparkle.framework*) continue ;;
+    esac
+
     build_info=$(vtool -show-build "$binary" 2>/dev/null) || continue
 
     echo "$build_info" | grep -q "platform MACOS" || continue
@@ -134,6 +140,9 @@ fi
 # Verify nothing exceeds the target
 FAIL=0
 while IFS= read -r -d '' binary; do
+    case "$binary" in
+        *Sparkle.framework*) continue ;;
+    esac
     info=$(vtool -show-build "$binary" 2>/dev/null) || continue
     echo "$info" | grep -q "platform MACOS" || continue
     minos=$(echo "$info" | grep "minos" | head -1 | awk '{print $2}')

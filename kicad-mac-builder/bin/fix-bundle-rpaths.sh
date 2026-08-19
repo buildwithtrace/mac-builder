@@ -23,6 +23,11 @@ FIXED=0
 ERRORS=0
 
 while IFS= read -r -d '' binary; do
+    # Skip Sparkle.framework -- its rpaths are correct as distributed
+    case "$binary" in
+        *Sparkle.framework*) continue ;;
+    esac
+
     rpaths=$(otool -l "$binary" 2>/dev/null \
         | grep -A 2 LC_RPATH \
         | grep 'path ' \

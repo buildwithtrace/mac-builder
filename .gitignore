@@ -16,4 +16,14 @@ build-arm64/
 build-x86_64/
 
 Trace.dmg
+
+# Local-only helper script
 create_dmg.sh
+
+# Generated toolchain file: machine-specific absolute paths + API keys
+toolchain/kicad-mac-builder.cmake
+
+# Local build/notarization artifacts
+notarization-log.json
+*.local
+*.backup

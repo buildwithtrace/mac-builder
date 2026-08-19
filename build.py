@@ -146,6 +146,11 @@ def parse_args(args):
     parser.add_argument("--extra-kicad-cmake-args",
                         help="Use something like '-DFOO=\"bar\"' to add FOO=bar to KiCad's CMake args.",
                         required=False)
+    parser.add_argument("--url-override",
+                        action="store_true",
+                        dest="url_override",
+                        help="Force-enable backend URL override. Auto-enabled for beta/pre-release versions.",
+                        required=False)
 
     parser.add_argument("--redistributable",
                         action="store_true",
@@ -346,6 +351,9 @@ def build(args, new_path):
         cmake_command.append("-DHARDENED_RUNTIME=ON")
     else:
         cmake_command.append("-DHARDENED_RUNTIME=OFF")
+
+    if args.url_override:
+        cmake_command.append("-DKICAD_BACKEND_URL_OVERRIDE=ON")
 
     if args.release_name:
         cmake_command.append("-DRELEASE_NAME={}".format(args.release_name))

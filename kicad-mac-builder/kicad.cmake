@@ -124,21 +124,35 @@ ExternalProject_Add_Step(
     COMMAND cp -r ${packages3d_INSTALL_DIR}/. ${KICAD_INSTALL_DIR}/Trace.app/Contents/SharedSupport/
 )
 
+set( ORT_VERSION "1.20.1" )
+
 ExternalProject_Add_Step(
     kicad
     install-onnxruntime-into-app
-    COMMENT "Installing ONNX Runtime dylib into Trace.app"
+    COMMENT "Downloading ONNX Runtime (if needed) and installing into Trace.app"
     DEPENDEES install
-    COMMAND mkdir -p ${KICAD_INSTALL_DIR}/Trace.app/Contents/Frameworks/
-    COMMAND cp -P ${KICAD_SOURCE_DIR}/thirdparty/onnxruntime/lib/libonnxruntime*.dylib ${KICAD_INSTALL_DIR}/Trace.app/Contents/Frameworks/
-    COMMAND install_name_tool -id @rpath/libonnxruntime.1.20.1.dylib ${KICAD_INSTALL_DIR}/Trace.app/Contents/Frameworks/libonnxruntime.1.20.1.dylib || true
+    COMMAND "${BIN_DIR}/ensure-onnxruntime.sh"
+            "${KICAD_SOURCE_DIR}/thirdparty/onnxruntime"
+            "${KICAD_INSTALL_DIR}/Trace.app/Contents/Frameworks"
+            "${ORT_VERSION}"
+)
+
+ExternalProject_Add_Step(
+    kicad
+    install-sparkle-into-app
+    COMMENT "Installing Sparkle.framework into Trace.app"
+    DEPENDEES install
+    COMMAND rm -rf "${KICAD_INSTALL_DIR}/Trace.app/Contents/Frameworks/Sparkle.framework"
+    COMMAND cp -a
+        "${KICAD_SOURCE_DIR}/thirdparty/Sparkle/Sparkle.framework"
+        "${KICAD_INSTALL_DIR}/Trace.app/Contents/Frameworks/"
 )
 
 ExternalProject_Add_Step(
     kicad
     remove-unsignable-files
     COMMENT "Removing unsignable object files from Trace.app"
-    DEPENDEES install-docs-into-app install collect-licenses install-footprints-into-app install-symbols-into-app install-templates-into-app install-packages3d-into-app install-onnxruntime-into-app
+    DEPENDEES install-docs-into-app install collect-licenses install-footprints-into-app install-symbols-into-app install-templates-into-app install-packages3d-into-app install-onnxruntime-into-app install-sparkle-into-app
     COMMAND find ${KICAD_INSTALL_DIR}/Trace.app -name "*.o" -type f -delete || true
 )
 
